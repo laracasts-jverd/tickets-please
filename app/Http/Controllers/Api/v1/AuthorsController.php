@@ -7,20 +7,20 @@ use App\Http\Requests\Api\v1\UpdateUserRequest;
 use App\Http\Resources\v1\UserResource;
 use App\Models\User;
 
-class UsersController extends ApiController
+class AuthorsController extends ApiController
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $users = User::paginate();
+        $authors = User::paginate();
 
         if ($this->include('tickets')) {
-            $users->load('tickets');
+            $authors->load('tickets');
         }
 
-        return UserResource::collection($users);
+        return UserResource::collection($authors);
     }
 
     /**
@@ -34,19 +34,19 @@ class UsersController extends ApiController
     /**
      * Display the specified resource.
      */
-    public function show(User $user)
+    public function show(User $author)
     {
         if ($this->include('tickets')) {
-            $user->load('tickets');
+            $author->load('tickets');
         }
 
-        return UserResource::make($user);
+        return UserResource::make($author);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateUserRequest $request, User $user)
+    public function update(UpdateUserRequest $request, User $author)
     {
         //
     }
@@ -54,7 +54,7 @@ class UsersController extends ApiController
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(User $user)
+    public function destroy(User $author)
     {
         //
     }
