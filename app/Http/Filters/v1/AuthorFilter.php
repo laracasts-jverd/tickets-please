@@ -2,19 +2,19 @@
 
 namespace App\Http\Filters\v1;
 
-class TicketFilter extends QueryFilter
+class AuthorFilter extends QueryFilter
 {
     /**
      * The attributes that are sortable.
      */
     protected $sortable = [
-        'title',
-        'status',
+        'name',
+        'email',
         'createdAt' => 'created_at',
     ];
 
     /**
-     * Filter by ticket creation date.
+     * Filter by author creation date.
      */
     public function createdAt($value)
     {
@@ -36,18 +36,26 @@ class TicketFilter extends QueryFilter
     }
 
     /**
-     * Filter by ticket status.
+     * Filter by author ids.
      */
-    public function status($values)
+    public function id($values)
     {
-        return $this->builder->whereIn('status', explode(',', $values));
+        return $this->builder->whereIn('id', explode(',', $values));
     }
 
     /**
-     * Filter by ticket title.
+     * Filter by author email.
      */
-    public function title($value)
+    public function email($value)
     {
-        return $this->builder->where('title', 'like', "%$value%");
+        return $this->builder->where('email', 'like', "%$value%");
+    }
+
+    /**
+     * Filter by author name.
+     */
+    public function name($value)
+    {
+        return $this->builder->where('name', 'like', "%$value%");
     }
 }
