@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Http\Filters\v1\TicketFilter;
 use App\Http\Requests\Api\v1\StoreTicketRequest;
 use App\Http\Requests\Api\v1\UpdateTicketRequest;
 use App\Http\Resources\v1\TicketResource;
@@ -13,15 +14,9 @@ class TicketsController extends ApiController
     /**
      * Display a listing of the resource.
      */
-    public function index(): AnonymousResourceCollection
+    public function index(TicketFilter $filters): AnonymousResourceCollection
     {
-        $tickets = Ticket::paginate();
-
-        if ($this->include('author')) {
-            $tickets->load('user');
-        }
-
-        return TicketResource::collection($tickets);
+        return TicketResource::collection(Ticket::filter($filters)->paginate());
     }
 
     /**

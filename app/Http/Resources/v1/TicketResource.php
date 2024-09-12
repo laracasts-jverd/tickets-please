@@ -41,7 +41,7 @@ class TicketResource extends JsonResource
                 ],
             ],
             'includes' => [
-                'author' => new UserResource($this->whenLoaded('user')),
+                'author' => new UserResource($this->whenLoaded('author')),
             ],
             'links' => [
                 // get urls for pagination
