@@ -6,10 +6,18 @@ use App\Http\Controllers\Api\v1\TicketsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:sanctum')->apiResource('tickets', TicketsController::class);
-Route::middleware('auth:sanctum')->apiResource('authors', AuthorsController::class);
-Route::middleware('auth:sanctum')->apiResource('authors.tickets', AuthorTicketsController::class);
+Route::middleware('auth:sanctum')->group(function () {
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+    Route::apiResource('tickets', TicketsController::class)->except(['update']);
+    Route::put('tickets/{ticket}', [TicketsController::class, 'replace']);
+    Route::patch('tickets/{ticket}', [TicketsController::class, 'update']);
+
+    Route::apiResource('authors', AuthorsController::class);
+    Route::apiResource('authors.tickets', AuthorTicketsController::class)->except(['update']);
+    Route::put('authors/{author}/tickets/{ticket}', [AuthorTicketsController::class, 'replace']);
+    Route::patch('authors/{author}/tickets/{ticket}', [AuthorTicketsController::class, 'update']);
+
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+});

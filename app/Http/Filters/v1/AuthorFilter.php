@@ -7,7 +7,7 @@ class AuthorFilter extends QueryFilter
     /**
      * The attributes that are sortable.
      */
-    protected $sortable = [
+    protected array $sortable = [
         'name',
         'email',
         'createdAt' => 'created_at',

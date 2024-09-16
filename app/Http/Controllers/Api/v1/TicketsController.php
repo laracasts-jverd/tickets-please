@@ -3,10 +3,14 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Filters\v1\TicketFilter;
-use App\Http\Requests\Api\v1\StoreTicketRequest;
-use App\Http\Requests\Api\v1\UpdateTicketRequest;
+use App\Http\Requests\Api\v1\Ticket\ReplaceTicketRequest;
+use App\Http\Requests\Api\v1\Ticket\StoreTicketRequest;
+use App\Http\Requests\Api\v1\Ticket\UpdateTicketRequest;
 use App\Http\Resources\v1\TicketResource;
 use App\Models\Ticket;
+use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class TicketsController extends ApiController
@@ -22,36 +26,78 @@ class TicketsController extends ApiController
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreTicketRequest $request)
+    public function store(StoreTicketRequest $request): TicketResource|JsonResponse
     {
-        //
+        try {
+            User::findOrFail($request->input('data.relationships.author.data.id'));
+        } catch (ModelNotFoundException $e) {
+            return $this->error('Author not found', 404);
+        }
+
+        return new TicketResource(Ticket::create($request->mappedAttributes()));
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Ticket $ticket): TicketResource
+    public function show($ticketId): TicketResource|JsonResponse
     {
-        if ($this->include('author')) {
-            $ticket->load('user');
-        }
+        try {
+            $ticket = Ticket::findOrFail($ticketId);
 
-        return TicketResource::make($ticket);
+            if ($this->include('author')) {
+                return new TicketResource($ticket->load('author'));
+            }
+
+            return TicketResource::make($ticket);
+        } catch (ModelNotFoundException $e) {
+            return $this->error('Ticket not found', 404);
+        }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateTicketRequest $request, Ticket $ticket)
+    public function update(UpdateTicketRequest $request, $ticketId)
     {
-        //
+        // PATCH
+        try {
+            $ticket = Ticket::findOrFail($ticketId);
+            $ticket->update($request->mappedAttributes());
+
+        } catch (ModelNotFoundException $e) {
+            return $this->error('Ticket not found', 404);
+        }
+
+        return new TicketResource($ticket);
+    }
+
+    public function replace(ReplaceTicketRequest $request, $ticketId)
+    {
+        // PUT
+        try {
+            $ticket = Ticket::findOrFail($ticketId);
+            $ticket->update($request->mappedAttributes());
+
+        } catch (ModelNotFoundException $e) {
+            return $this->error('Ticket not found', 404);
+        }
+
+        return new TicketResource($ticket);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Ticket $ticket)
+    public function destroy($ticketId): JsonResponse
     {
-        //
+        try {
+            $ticket = Ticket::findOrFail($ticketId);
+        } catch (ModelNotFoundException $e) {
+            return $this->error('Ticket not found', 404);
+        }
+
+        $ticket->delete();
+
+        return $this->ok('Ticket deleted successfully', [
+            'message' => 'The ticket was deleted successfully.',
+        ]);
     }
 }

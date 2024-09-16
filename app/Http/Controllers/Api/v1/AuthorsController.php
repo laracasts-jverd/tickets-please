@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Filters\v1\AuthorFilter;
-use App\Http\Requests\Api\v1\StoreUserRequest;
-use App\Http\Requests\Api\v1\UpdateUserRequest;
+use App\Http\Requests\Api\v1\User\StoreUserRequest;
+use App\Http\Requests\Api\v1\User\UpdateUserRequest;
 use App\Http\Resources\v1\UserResource;
 use App\Models\User;
 

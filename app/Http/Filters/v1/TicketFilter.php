@@ -7,7 +7,7 @@ class TicketFilter extends QueryFilter
     /**
      * The attributes that are sortable.
      */
-    protected $sortable = [
+    protected array $sortable = [
         'title',
         'status',
         'createdAt' => 'created_at',
