@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Api\v1\Ticket;
 
+use App\Permissions\Abilities;
+
 class StoreTicketRequest extends BaseTicketRequest
 {
     /**
@@ -23,10 +25,16 @@ class StoreTicketRequest extends BaseTicketRequest
             'data.attributes.title' => 'required|string',
             'data.attributes.description' => 'required|string',
             'data.attributes.status' => 'required|string|in:A,C,H,X',
+            'data.relationships.author.data.id' => 'required|integer|exists:users,id',
         ];
 
+        $user = $this->user();
+
         if ($this->routeIs('tickets.store')) {
-            $rules['data.relationships.author.data.id'] = 'required|integer';
+            if ($user->tokenCan(Abilities::CREATE_OWN_TICKET)) {
+                // author_id must be the same as the authenticated user
+                $rules['data.relationships.author.data.id'] .= '|size:'.$user->id;
+            }
         }
 
         return $rules;

@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Api\v1\Ticket;
 
+use App\Permissions\Abilities;
+
 class UpdateTicketRequest extends BaseTicketRequest
 {
     /**
@@ -19,11 +21,17 @@ class UpdateTicketRequest extends BaseTicketRequest
      */
     public function rules(): array
     {
-        return [
-            'data.attributes.title' => 'required|string',
-            'data.attributes.description' => 'required|string',
-            'data.attributes.status' => 'required|string|in:A,C,H,X',
-            'data.relationships.author.data.id' => 'required|integer',
+        $rules = [
+            'data.attributes.title' => 'sometimes|string',
+            'data.attributes.description' => 'sometimes|string',
+            'data.attributes.status' => 'sometimes|string|in:A,C,H,X',
+            'data.relationships.author.data.id' => 'sometimes|integer',
         ];
+
+        if ($this->user()->tokenCan(Abilities::UPDATE_TICKET)) {
+            $rules['data.relationships.author.data.id'] = 'prohibited';
+        }
+
+        return $rules;
     }
 }

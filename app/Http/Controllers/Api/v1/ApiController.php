@@ -4,10 +4,11 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
 use App\Traits\ApiResponses;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class ApiController extends Controller
 {
-    use ApiResponses;
+    use ApiResponses, AuthorizesRequests;
 
     /**
      * Check if the request includes a relationship.
