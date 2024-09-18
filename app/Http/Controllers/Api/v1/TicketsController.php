@@ -28,15 +28,11 @@ class TicketsController extends ApiController
      */
     public function store(StoreTicketRequest $request): TicketResource|JsonResponse
     {
-        try {
-            $this->authorize('store', Ticket::class);
-
+        if ($this->authorize('store', Ticket::class)) {
             return new TicketResource(Ticket::create($request->mappedAttributes()));
-        } catch (AuthorizationException $e) {
-            return $this->error('This action is unauthorized.', 403);
         }
 
-        return new TicketResource(Ticket::create($request->mappedAttributes()));
+        return $this->error('This action is unauthorized.', 403);
     }
 
     /**
@@ -62,13 +58,15 @@ class TicketsController extends ApiController
         // PATCH
         try {
             $ticket = Ticket::findOrFail($ticketId);
-            $this->authorize('update', $ticket);
-            $ticket->update($request->mappedAttributes());
+
+            if ($this->authorize('update', $ticket)) {
+                $ticket->update($request->mappedAttributes());
+            }
+
+            return $this->error('This action is unauthorized.', 403);
 
         } catch (ModelNotFoundException $e) {
             return $this->error('Ticket not found', 404);
-        } catch (AuthorizationException $e) {
-            return $this->error('This action is unauthorized.', 403);
         }
 
         return new TicketResource($ticket);
@@ -98,17 +96,20 @@ class TicketsController extends ApiController
     {
         try {
             $ticket = Ticket::findOrFail($ticketId);
-            $this->authorize('delete', $ticket);
+
+            if ($this->authorize('delete', $ticket)) {
+                $ticket->delete();
+
+                return $this->ok('Ticket deleted successfully', [
+                    'message' => 'The ticket was deleted successfully.',
+                ]);
+            }
+
+            return $this->error('This action is unauthorized.', 403);
+
         } catch (ModelNotFoundException $e) {
             return $this->error('Ticket not found', 404);
-        } catch (AuthorizationException $e) {
-            return $this->error('This action is unauthorized.', 403);
         }
 
-        $ticket->delete();
-
-        return $this->ok('Ticket deleted successfully', [
-            'message' => 'The ticket was deleted successfully.',
-        ]);
     }
 }

@@ -7,6 +7,7 @@ use App\Http\Requests\Api\v1\Ticket\ReplaceTicketRequest;
 use App\Http\Requests\Api\v1\Ticket\StoreTicketRequest;
 use App\Http\Resources\v1\TicketResource;
 use App\Models\Ticket;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 
@@ -24,11 +25,19 @@ class AuthorTicketsController extends ApiController
     /**
      * Store a newly created resource in storage.
      */
-    public function store($authorId, StoreTicketRequest $request)
+    public function store(StoreTicketRequest $request, $authorId)
     {
-        return new TicketResource(
-            Ticket::create($request->mappedAttributes())
-        );
+        try {
+            $this->authorize('store', Ticket::class);
+
+            return new TicketResource(Ticket::create($request->mappedAttributes([
+                'author_id' => 'user_id',
+            ])));
+        } catch (AuthorizationException $e) {
+            return $this->error('This action is unauthorized.', 403);
+        }
+
+        return new TicketResource(Ticket::create($request->mappedAttributes()));
     }
 
     /**
@@ -37,9 +46,14 @@ class AuthorTicketsController extends ApiController
     public function destroy($authorId, $ticketId): JsonResponse
     {
         try {
-            $ticket = Ticket::where('user_id', $authorId)->findOrFail($ticketId);
+            $ticket = Ticket::where('id', $ticketId)
+                ->where('user_id', $authorId)
+                ->firstOrFail();
+            $this->authorize('delete', $ticket);
         } catch (ModelNotFoundException $e) {
             return $this->error('Ticket not found', 404);
+        } catch (AuthorizationException $e) {
+            return $this->error('This action is unauthorized.', 403);
         }
         $ticket->delete();
 
@@ -52,10 +66,35 @@ class AuthorTicketsController extends ApiController
     {
         // PUT
         try {
-            $ticket = Ticket::where('user_id', $authorId)->findOrFail($ticketId);
+            $ticket = Ticket::where('id', $ticketId)
+                ->where('user_id', $authorId)
+                ->firstOrFail();
+
+            $this->authorize('update', $ticket);
             $ticket->update($request->mappedAttributes());
         } catch (ModelNotFoundException $e) {
             return $this->error('Ticket not found', 404);
+        } catch (AuthorizationException $e) {
+            return $this->error('This action is unauthorized.', 403);
+        }
+
+        return new TicketResource($ticket);
+    }
+
+    public function update(ReplaceTicketRequest $request, $authorId, $ticketId)
+    {
+        // PUT
+        try {
+            $ticket = Ticket::where('id', $ticketId)
+                ->where('user_id', $authorId)
+                ->firstOrFail();
+
+            $this->authorize('update', $ticket);
+            $ticket->update($request->mappedAttributes());
+        } catch (ModelNotFoundException $e) {
+            return $this->error('Ticket not found', 404);
+        } catch (AuthorizationException $e) {
+            return $this->error('This action is unauthorized.', 403);
         }
 
         return new TicketResource($ticket);
