@@ -93,15 +93,8 @@ class UsersController extends ApiController
      */
     public function destroy($userId)
     {
-        try {
-            $user = User::findOrFail($userId);
-            $this->authorize('delete', $user);
-        } catch (ModelNotFoundException $e) {
-            return $this->error('Ticket not found', 404);
-        } catch (AuthorizationException $e) {
-            return $this->error('This action is unauthorized.', 403);
-        }
-
+        $user = User::findOrFail($userId);
+        $this->authorize('delete', $user);
         $user->delete();
 
         return $this->ok('User deleted successfully', [
